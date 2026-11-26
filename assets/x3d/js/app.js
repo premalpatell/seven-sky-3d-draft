@@ -116,6 +116,7 @@ async function boot() {
   const allow = d => { const c = W.controls; c.maxDistance = Math.max(c.maxDistance, d * 1.6); c.minDistance = Math.min(c.minDistance, d * 0.35); };
   const roomFov = (v) => (W.w / W.h < 1 ? Math.min(90, v.fov + 20) : v.fov);   // portrait phones need a taller lens to see as wide
   function showWorld(on, except) {
+    W.touchShadows();
     site.root.visible = on;
     for (const [n, t] of Object.entries(towers.byName)) t.group.visible = on || n === except;
   }

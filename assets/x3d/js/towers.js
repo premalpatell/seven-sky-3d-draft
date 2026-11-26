@@ -207,11 +207,33 @@ export class Towers {
     }
     t.roof.position.y = 0; t.roof.visible = true; t.ground.position.y = 0; t.ground.visible = true;
     if (t.fadeAll) for (const m of t.fadeAll) m.material = m.userData.orig;
+    this.showNeighbours();
   }
-  // hide/show the exterior shell of one floor (the furnished interior takes its place)
+  // hide/show the exterior shell of one floor (the furnished interior takes its place). Towers that stand back to back
+  // (C and D, for instance) overlap by a wall's thickness, so the same floor of a touching tower goes with it
   setShell(name, level, visible) {
-    const f = this.byName[name]?.floors.get(level); if (!f) return;
-    f.walls.visible = f.glass.visible = f.rails.visible = f.hand.visible = visible;
-    f.slab.position.y = visible ? 0 : -0.47;          // the slab drops just under the furnished floor and becomes its base
+    const t = this.byName[name], f = t?.floors.get(level); if (!f) return;
+    const shell = (fl, v) => { fl.walls.visible = fl.glass.visible = fl.rails.visible = fl.hand.visible = v; fl.slab.position.y = v ? 0 : -0.47; };
+    shell(f, visible);                                 // the slab drops just under the furnished floor and becomes its base
+    this.showNeighbours();
+    if (!visible) for (const o of Object.values(this.byName)) {
+      if (o === t || !this.touching(o, t)) continue;
+      const nf = o.floors.get(level); if (!nf) continue;
+      shell(nf, false); (this.hiddenN ||= []).push(nf);
+    }
+  }
+  // do two towers' outlines come within 3 ft of each other?
+  touching(a, b) {
+    const key = [a.name, b.name].sort().join(''); this.touchCache ||= {};
+    if (key in this.touchCache) return this.touchCache[key];
+    const poly = t => t.data.outline.map(([x, z]) => new THREE.Vector2(x * Math.cos(t.rotY) + z * Math.sin(t.rotY) + t.center.x, -x * Math.sin(t.rotY) + z * Math.cos(t.rotY) + t.center.z));
+    const A = poly(a), B = poly(b), seg = (p, q, r) => { const d = r.clone().sub(q), t = Math.max(0, Math.min(1, p.clone().sub(q).dot(d) / Math.max(1e-9, d.lengthSq()))); return p.distanceTo(q.clone().addScaledVector(d, t)); };
+    let m = Infinity;
+    for (const [P, Q] of [[A, B], [B, A]]) for (const p of P) for (let i = 0; i < Q.length; i++) m = Math.min(m, seg(p, Q[i], Q[(i + 1) % Q.length]));
+    return (this.touchCache[key] = m < 3);
+  }
+  showNeighbours() {
+    for (const nf of this.hiddenN || []) { nf.walls.visible = nf.glass.visible = nf.rails.visible = nf.hand.visible = true; nf.slab.position.y = 0; }
+    this.hiddenN = [];
   }
 }

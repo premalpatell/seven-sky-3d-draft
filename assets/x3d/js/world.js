@@ -70,10 +70,12 @@ export class World {
     this.quality = quality;
     this.reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(devicePixelRatio, quality === 'high' ? 1.75 : 1.4));
+    this.basePR = Math.min(devicePixelRatio, quality === 'high' ? 1.75 : 1.4); this.prScale = 1; this.ft = []; this.good = 0;
+    r.setPixelRatio(this.basePR);
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 0.9;
     r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.shadowMap.autoUpdate = false; this.shadowFrames = 3;      // shadows are redrawn only when something moves (see frame)
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(34, 1, 0.3, 9000);
     this.camera.position.set(260, 130, -190);
@@ -104,7 +106,9 @@ export class World {
     this.shift = { x: 0, y: 0 };
 
     // --- post ---
-    this.composer = new EffectComposer(r);
+    // the composer renders off-screen, so the canvas's own antialiasing never applies: give its target 4x MSAA
+    const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
+    this.composer = new EffectComposer(r, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     if (quality === 'high') {
       this.ao = new GTAOPass(this.scene, this.camera, 2, 2);
@@ -179,6 +183,23 @@ export class World {
     k.position.copy(k.target.position).addScaledVector(d, dist);
   }
 
+  // adaptive quality: on a GPU that can't keep up, trade render resolution (then ambient occlusion) for a smooth frame rate,
+  // and step back up when there is headroom. Judged on the median of 90 frames, so one-off hitches don't count
+  adapt(dt) {
+    if (this.tweens.size || document.hidden) return;
+    this.ft.push(dt); if (this.ft.length < 90) return;
+    const med = [...this.ft].sort((a, b) => a - b)[45]; this.ft.length = 0;
+    if (med > 1 / 36) {
+      this.good = 0;
+      if (this.prScale > 0.62) { this.prScale = Math.max(0.6, this.prScale - 0.15); this.applyPR(); }
+      else if (this.ao && !this.aoOff) this.aoOff = true;
+    } else if (med < 1 / 56 && this.prScale < 1 && ++this.good >= 3) { this.good = 0; this.prScale = Math.min(1, this.prScale + 0.1); this.applyPR(); }
+  }
+  applyPR() { this.renderer.setPixelRatio(this.basePR * this.prScale); this.composer.setPixelRatio?.(this.basePR * this.prScale); this.resize(); }
+
+  // ask for the shadows to be redrawn (after showing or hiding something outside a transition)
+  touchShadows() { this.shadowFrames = Math.max(this.shadowFrames, 3); }
+
   // shadow camera follows what matters (the whole site, or one floor)
   focusShadows(center, radius) {
     const k = this.key, cam = k.shadow.camera;
@@ -189,6 +210,7 @@ export class World {
 
   tween(ms, update, easeFn = ease.inOut) {
     return new Promise(res => {
+      this.shadowFrames = Math.max(this.shadowFrames, 3);
       if (this.reduce || ms <= 0) { update(1); return res(); }
       const t = { t0: performance.now(), ms, update, easeFn, res };
       this.tweens.add(t);
@@ -219,7 +241,13 @@ export class World {
     this.sky.position.copy(this.camera.position);
     for (const f of this.onFrame) f(dt, now);
     if (this.controls.enabled) this.controls.update();
-    if (this.ao && this.ao.enabled) { /* GTAO reads camera each frame */ }
+    // the sun and everything that casts a shadow only move during transitions (flights, the floor drawer, walls rising),
+    // so the shadow map is redrawn then, when the light is re-aimed, and for a few frames after; not on every frame
+    const k = this.key, c = k.shadow.camera, sig = `${k.position.x.toFixed(2)},${k.position.y.toFixed(2)},${k.position.z.toFixed(2)},${k.target.position.x.toFixed(2)},${k.target.position.z.toFixed(2)},${c.right},${c.far}`;
+    if (this.tweens.size || sig !== this.shadowSig) { this.shadowFrames = 3; this.shadowSig = sig; }
+    if (this.shadowFrames > 0) { this.renderer.shadowMap.needsUpdate = true; this.shadowFrames--; }
+    this.adapt(dt);
+    if (this.aoOff && this.ao) this.ao.enabled = false;
     this.composer.render(dt);
   }
 }

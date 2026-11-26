@@ -45,13 +45,15 @@ export const tex = {
   track: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#a8654a'; g.fillRect(0, 0, w, h); noise(g, w, h, 30, 13, 0.04); }, { repeat: [1 / 10, 1 / 10] }),
   sand: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#d8c39a'; g.fillRect(0, 0, w, h); noise(g, w, h, 40, 17, 0.05); }, { repeat: [1 / 8, 1 / 8] }),
   oak: () => canvasTexture(512, (g, w, h) => {
-    const r = rng(21); g.fillStyle = '#c39a6b'; g.fillRect(0, 0, w, h);
-    for (let y = 0; y < h; y += 2) { const v = Math.sin(y * 0.09 + Math.sin(y * 0.013) * 6) * 0.5 + 0.5; g.fillStyle = `rgba(110,70,35,${0.05 + v * 0.1})`; g.fillRect(0, y, w, 2); }
-    for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(90,55,25,${r() * 0.12})`; g.fillRect(0, r() * h, w, 1); }
+    const r = rng(21); g.fillStyle = '#c9a47a'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y++) { const v = Math.sin(y * 0.07 + Math.sin(y * 0.011) * 7 + Math.sin(y * 0.31) * 0.4) * 0.5 + 0.5; g.fillStyle = `rgba(118,76,40,${0.03 + v * 0.11})`; g.fillRect(0, y, w, 1); }
+    for (let i = 0; i < 110; i++) { const y = r() * h; g.fillStyle = `rgba(90,55,25,${r() * 0.14})`; g.fillRect(0, y, w, 0.6 + r()); }
+    for (let i = 0; i < 6; i++) { const x = r() * w, y = r() * h; g.strokeStyle = 'rgba(95,58,28,.18)'; g.lineWidth = 1; g.beginPath(); g.ellipse(x, y, 26 + r() * 20, 4 + r() * 3, 0, 0, Math.PI * 2); g.stroke(); }
   }, { repeat: [1, 1] }),
-  walnut: () => canvasTexture(256, (g, w, h) => {
-    g.fillStyle = '#6a4a33'; g.fillRect(0, 0, w, h);
-    for (let y = 0; y < h; y += 2) { const v = Math.sin(y * 0.11 + Math.sin(y * 0.02) * 5) * 0.5 + 0.5; g.fillStyle = `rgba(30,18,10,${0.08 + v * 0.12})`; g.fillRect(0, y, w, 2); }
+  walnut: () => canvasTexture(512, (g, w, h) => {
+    const r = rng(23); g.fillStyle = '#6f4d34'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y++) { const v = Math.sin(y * 0.09 + Math.sin(y * 0.017) * 6) * 0.5 + 0.5; g.fillStyle = `rgba(32,18,9,${0.05 + v * 0.14})`; g.fillRect(0, y, w, 1); }
+    for (let i = 0; i < 90; i++) { g.fillStyle = `rgba(${r() > 0.5 ? '255,220,180' : '20,10,5'},${r() * 0.08})`; g.fillRect(0, r() * h, w, 0.6 + r()); }
   }),
   fabric: (base = '#9b968e') => canvasTexture(128, (g, w, h) => {
     g.fillStyle = base; g.fillRect(0, 0, w, h);
@@ -68,10 +70,60 @@ export const tex = {
     for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(i * w / 4, 0); g.lineTo(i * w / 4, h); g.stroke(); }
     for (let i = 0; i <= 8; i++) { g.beginPath(); g.moveTo(0, i * h / 8); g.lineTo(w, i * h / 8); g.stroke(); }
   }, { repeat: [1, 1] }),
-  rug: () => canvasTexture(256, (g, w, h) => {
-    g.fillStyle = '#c9b597'; g.fillRect(0, 0, w, h); noise(g, w, h, 24, 51, 0.04);
-    g.strokeStyle = 'rgba(120,95,70,.35)'; g.lineWidth = 6; g.strokeRect(10, 10, w - 20, h - 20);
+  rug: () => canvasTexture(512, (g, w, h) => {
+    g.fillStyle = '#d4c4a8'; g.fillRect(0, 0, w, h); noise(g, w, h, 22, 51, 0.04);
+    const r = rng(52);
+    for (let i = 0; i < 14000; i++) { const v = r() > 0.5 ? 255 : 60; g.fillStyle = `rgba(${v},${v},${v},.05)`; g.fillRect(r() * w, r() * h, 1, 2); }
+    g.strokeStyle = 'rgba(96,74,52,.55)'; g.lineWidth = 10; g.strokeRect(22, 22, w - 44, h - 44);
+    g.strokeStyle = 'rgba(96,74,52,.3)'; g.lineWidth = 3; g.strokeRect(44, 44, w - 88, h - 88);
+    // soft abstract motif
+    g.strokeStyle = 'rgba(150,120,90,.22)'; g.lineWidth = 5;
+    for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(w * (0.3 + 0.08 * i), h * 0.55, 60 + i * 26, Math.PI * 1.05, Math.PI * 1.75); g.stroke(); }
   }),
+  // what a mirror 'sees' in a bright room: soft light above, warmer wall tones below (so mirrors never read as black holes)
+  mirrorGlow: () => canvasTexture(64, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w * 0.3, h);
+    gr.addColorStop(0, '#9aa3aa'); gr.addColorStop(0.45, '#7d8388'); gr.addColorStop(0.7, '#8a8277'); gr.addColorStop(1, '#6f6a63');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(w * 0.15, 0); g.lineTo(w * 0.35, 0); g.lineTo(w * 0.05, h); g.lineTo(0, h); g.closePath(); g.fill();
+  }, { aniso: 1 }),
+  // woven upholstery relief (used as a bump map, not colour)
+  weave: () => canvasTexture(128, (g, w, h) => {
+    g.fillStyle = '#808080'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) { const o = ((x + y) / 4) % 2; g.fillStyle = o ? '#9a9a9a' : '#6a6a6a'; g.fillRect(x, y, 4, 2); g.fillStyle = o ? '#707070' : '#949494'; g.fillRect(x, y + 2, 4, 2); }
+    noise(g, w, h, 30, 81, 0.02);
+  }, { repeat: [6, 6], srgb: false }),
+  // white marble with soft grey veins
+  marble: () => canvasTexture(512, (g, w, h) => {
+    g.fillStyle = '#f2efea'; g.fillRect(0, 0, w, h); noise(g, w, h, 8, 91, 0.05);
+    const r = rng(92);
+    for (let k = 0; k < 9; k++) {
+      let x = r() * w, y = r() * h; const a0 = r() * Math.PI;
+      g.strokeStyle = `rgba(120,118,115,${0.12 + r() * 0.25})`; g.lineWidth = 0.6 + r() * 2.2; g.beginPath(); g.moveTo(x, y);
+      for (let s = 0; s < 60; s++) { const a = a0 + Math.sin(s * 0.3 + k) * 0.7; x += Math.cos(a) * 9; y += Math.sin(a) * 9; g.lineTo(x, y); }
+      g.stroke();
+    }
+  }),
+  // brushed stainless steel (fine horizontal streaks)
+  brushed: () => canvasTexture(256, (g, w, h) => {
+    g.fillStyle = '#c3c6c9'; g.fillRect(0, 0, w, h); const r = rng(101);
+    for (let i = 0; i < 900; i++) { const v = 150 + r() * 90; g.fillStyle = `rgba(${v},${v},${v + 4},.35)`; g.fillRect(0, r() * h, w, 0.6 + r()); }
+  }),
+  // walnut slatted wall panel behind the TV
+  slats: () => canvasTexture(512, (g, w, h) => {
+    g.fillStyle = '#6e4c33'; g.fillRect(0, 0, w, h); const r = rng(111);
+    for (let x = 0; x < w; x += 2) { const v = Math.sin(x * 0.21 + Math.sin(x * 0.03) * 4) * 0.5 + 0.5; g.fillStyle = `rgba(35,20,10,${0.05 + v * 0.1})`; g.fillRect(x, 0, 2, h); }
+    for (let i = 0; i < 80; i++) { g.fillStyle = `rgba(30,18,8,${r() * 0.12})`; g.fillRect(r() * w, 0, 1, h); }
+    for (let x = 0; x < w; x += 32) { g.fillStyle = 'rgba(15,8,3,.75)'; g.fillRect(x, 0, 5, h); g.fillStyle = 'rgba(255,230,200,.06)'; g.fillRect(x + 5, 0, 2, h); }
+  }),
+  // framed abstract art prints (warm, calm palette)
+  art: (seed = 1) => canvasTexture(256, (g, w, h) => {
+    const r = rng(seed * 7919), pal = [['#e9dfcf', '#c58b5f', '#7f8f7a', '#2f3a48'], ['#efe8dc', '#b9a27f', '#5d7186', '#d7b48a'], ['#f1ece3', '#8a9a86', '#c9a074', '#3b3f45']][seed % 3];
+    g.fillStyle = pal[0]; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 4; i++) { g.fillStyle = pal[1 + (i % 3)]; g.globalAlpha = 0.75; g.beginPath(); g.arc(w * (0.2 + r() * 0.6), h * (0.25 + r() * 0.55), 30 + r() * 70, 0, Math.PI * 2); g.fill(); }
+    g.globalAlpha = 1; g.strokeStyle = pal[3]; g.lineWidth = 3; g.beginPath(); g.moveTo(w * 0.1, h * 0.8); g.bezierCurveTo(w * 0.4, h * 0.5, w * 0.6, h * 0.95, w * 0.9, h * 0.6); g.stroke();
+    noise(g, w, h, 10, seed, 0.02);
+  }, { repeat: [1, 1] }),
   // lane markings for the roads
   lane: () => canvasTexture(256, (g, w, h) => {
     g.fillStyle = '#3b3d40'; g.fillRect(0, 0, w, h); noise(g, w, h, 26, 61, 0.05);
