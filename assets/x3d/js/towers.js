@@ -21,12 +21,12 @@ export class Towers {
     this.root = new THREE.Group(); this.root.name = 'towers';
     const M = this.mat = {
       facade: new THREE.MeshStandardMaterial({ map: tex.stucco(), bumpMap: tex.stuccoBump(), bumpScale: 0.5, roughness: 0.88, color: 0xffffff }),
-      slab: new THREE.MeshStandardMaterial({ color: 0xf1e2cc, roughness: 0.85 }),
-      cornice: new THREE.MeshStandardMaterial({ color: 0xc9a47c, roughness: 0.8 }),
+      slab: new THREE.MeshStandardMaterial({ color: 0xcdb898, roughness: 0.85 }),
+      cornice: new THREE.MeshStandardMaterial({ color: 0x7c6350, roughness: 0.8 }),
       glass: new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: true }),
       rail: new THREE.MeshStandardMaterial({ color: 0x1d2631, roughness: 0.12, metalness: 0.5, transparent: true, opacity: 0.78, depthWrite: false }),
       handrail: new THREE.MeshStandardMaterial({ color: 0x2c3036, roughness: 0.4, metalness: 0.7 }),
-      column: new THREE.MeshStandardMaterial({ color: 0xd9c4a6, roughness: 0.85 }),
+      column: new THREE.MeshStandardMaterial({ color: 0x9a8368, roughness: 0.85 }),
       lobby: new THREE.MeshStandardMaterial({ color: 0x2a2620, emissive: 0xffd6a0, emissiveIntensity: 0.55, roughness: 0.2 }),
       tank: new THREE.MeshStandardMaterial({ color: 0xbfc3c7, roughness: 0.6 }),
       hit: new THREE.MeshBasicMaterial({ visible: false }),

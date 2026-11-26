@@ -13,6 +13,9 @@ const ord = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
 const status = T => READY.has(T) ? 'Possession Dec 2026' : 'Under construction';
 const ROOM_ORDER = ['living', 'kitchen', 'bed', 'balcony', 'toilet', 'wash'];
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const Y = new THREE.Vector3(0, 1, 0);
+// camera spot on an orbit round a target: horizontal direction, distance, elevation (radians)
+const orbitPos = (target, dir, dist, el) => target.clone().addScaledVector(dir, dist * Math.cos(el)).addScaledVector(Y, dist * Math.sin(el));
 
 const root = $('#x3d');
 if (root) boot().catch(err => { console.error(err); $('#x3d-loader-t').textContent = 'Sorry, the 3D view could not start on this device.'; });
@@ -31,20 +34,65 @@ async function boot() {
   W.setMood('site');
 
   const S = { mode: 'site', T: null, F: null, flat: null, room: null, busy: false, hover: null };
-  const heroFor = () => {
-    const target = new THREE.Vector3(HERO_TARGET.x, W.w / W.h < 1 ? 18 : 40, HERO_TARGET.z), dir = new THREE.Vector3(0.5, 0, -0.866).normalize();
-    const dist = W.w / W.h < 1 ? 560 : 430, el = THREE.MathUtils.degToRad(W.w / W.h < 1 ? 7 : 5);
-    return { pos: target.clone().addScaledVector(dir, dist * Math.cos(el)).add(new THREE.Vector3(0, dist * Math.sin(el), 0)), target };
-  };
-  const HERO = heroFor();
-  W.camera.position.copy(HERO.pos); W.controls.target.copy(HERO.target); W.camera.lookAt(HERO.target);
-  controlsFor('site');
 
   // ---------- UI ----------
   const ui = {
     app: $('#x3d-app'), card: $('#x3d-card'), line: $('#x3d-leader line'), leader: $('#x3d-leader'), pins: $('#x3d-pins'),
-    panel: $('#x3d-panel'), room: $('#x3d-room'), crumb: $('#x3d-crumb'), hint: $('#x3d-hint'), intro: $('#x3d-intro'), help: $('#x3d-help'),
+    panel: $('#x3d-panel'), room: $('#x3d-room'), crumb: $('#x3d-crumb'), hint: $('#x3d-hint'), intro: $('#x3d-intro'), help: $('#x3d-help'), ctx: $('#x3d-ctx'),
   };
+  const portrait = () => W.w / W.h < 1;
+  const towerBox = new THREE.Box3(); for (const t of Object.values(towers.byName)) towerBox.expandByObject(t.group);
+  // on an upright screen, or a phone on its side: where the free part of the picture starts and ends (px from the top and
+  // from the bottom), clear of the buttons at the top and the text, hint or panel at the bottom. Desktop frames as before.
+  function insets() {
+    const a = ui.app.getBoundingClientRect(), vis = el => el && !el.hidden && el.getBoundingClientRect().height > 0;
+    const up = portrait(), low = !up && W.h < 520;
+    if (!up && !low) return { top: 0, bottom: 0 };
+    const top = ui.crumb.children.length ? ui.crumb.getBoundingClientRect().bottom - a.top + 10 : 70;
+    let bottom = 8;
+    if (S.mode === 'site') bottom = up ? a.bottom - ui.intro.getBoundingClientRect().top + 6 : 0;
+    else if (up && vis(ui.panel)) bottom = a.bottom - ui.panel.getBoundingClientRect().top;
+    else if (up && ui.hint.textContent) bottom = a.bottom - ui.hint.parentElement.getBoundingClientRect().top + 8;
+    return { top, bottom };
+  }
+  const SWAY = () => (portrait() ? 0.22 : 0.6);
+  function heroFor() {
+    if (!portrait()) {
+      const target = new THREE.Vector3(HERO_TARGET.x, 40, HERO_TARGET.z), dir = new THREE.Vector3(0.5, 0, -0.866).normalize();
+      W.siteFog = 0;
+      return { pos: orbitPos(target, dir, 430, THREE.MathUtils.degToRad(5)), target, dir, shift: 0 };
+    }
+    // phones held upright: look down the row from Tower A's corner (as the brochure render does) and fit all seven towers,
+    // through the whole sway, into the space above the intro text
+    const m0 = S.mode; S.mode = 'site'; const { top, bottom } = insets(); S.mode = m0;
+    const shift = bottom - top, c = towerBox.getCenter(new THREE.Vector3());
+    const target = new THREE.Vector3(c.x, towerBox.min.y + (towerBox.max.y - towerBox.min.y) * 0.42, c.z);
+    const el = THREE.MathUtils.degToRad(9);
+    const cam = new THREE.PerspectiveCamera(34, 1, 1, 9000); cam.setViewOffset(W.w, W.h + Math.abs(shift), 0, Math.max(shift, 0), W.w, W.h);
+    const pts = [];
+    for (const t of Object.values(towers.byName)) {
+      const b = new THREE.Box3().setFromObject(t.group);
+      for (let i = 0; i < 8; i++) pts.push(new THREE.Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z));
+    }
+    const yTop = 1 - 2 * top / W.h, yBot = -1 + 2 * bottom / W.h, v = new THREE.Vector3();
+    const fits = (dir, dist) => [-SWAY(), 0, SWAY()].every(a => {
+      cam.position.copy(orbitPos(target, dir.clone().applyAxisAngle(Y, a), dist, el)); cam.lookAt(target); cam.updateMatrixWorld();
+      return pts.every(p => { v.copy(p).project(cam); return Math.abs(v.x) < 0.96 && v.y < yTop && v.y > yBot - 0.2; });   // the very foot may dip behind the text
+    });
+    const fitDistFor = dir => { let lo = 150, hi = 3000; for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (fits(dir, m)) hi = m; else lo = m; } return hi; };
+    // from the sunlit north side, try angles from the hero's towards looking down the row; keep the one that shows the towers largest
+    let best = null;
+    for (let deg = 25; deg <= 75; deg += 5) {
+      const a = THREE.MathUtils.degToRad(deg), dir = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a)), dist = fitDistFor(dir) * (1 + Math.abs(deg - 40) * 0.002);
+      if (!best || dist < best.dist) best = { dir, dist };
+    }
+    W.siteFog = 0.00085 * Math.min(1, 620 / best.dist);          // the haze is tuned for the desktop distance; don't let it wash a farther view out
+    return { pos: orbitPos(target, best.dir, best.dist, el), target, dir: best.dir, shift };
+  }
+  const HERO = heroFor(); S.heroDir = HERO.dir; W.setMood('site');
+  W.shift.y = HERO.shift; W.applyShift();
+  W.camera.position.copy(HERO.pos); W.controls.target.copy(HERO.target); W.camera.lookAt(HERO.target);
+  controlsFor('site');
   function setMode(mode) {
     S.mode = mode; root.dataset.mode = mode;
     const app = mode !== 'site';
@@ -52,7 +100,7 @@ async function boot() {
     if (!app && document.body.classList.contains('x3d-on')) { document.body.classList.remove('x3d-on'); scrollTo(0, S.scrollY || 0); }
     hideCard(); ui.pins.innerHTML = '';
     ui.hint.textContent = { site: finePointer ? 'Hover a floor to explore' : 'Tap a floor to explore', tower: finePointer ? 'Hover a floor · click to open it' : 'Tap a floor to open it', floor: finePointer ? 'Choose a flat' : 'Tap a flat', flat: 'Choose a room to step inside', room: '' }[mode];
-    ui.help.textContent = mode === 'room' ? (finePointer ? 'Drag to look around · scroll to zoom' : 'Drag to look around') : '';
+    ui.help.textContent = mode === 'room' ? (finePointer ? 'Drag to look around · scroll to zoom' : 'Drag to look around · pinch to zoom') : '';
     renderCrumb();
     controlsFor(mode);
   }
@@ -61,17 +109,22 @@ async function boot() {
     if (S.mode === 'tower') parts.push(['site', '← All towers']);
     if (S.mode === 'floor') parts.push(['tower', `← Tower ${S.T}`]);
     if (S.mode === 'flat') parts.push(['floor', `← ${ord(S.F)} floor`]);
+    if (S.mode === 'room') parts.push(['flat', '← Floor plan']);
+    const where = S.mode === 'site' ? '' : [S.T && 'Tower ' + S.T, S.F && ord(S.F) + ' floor', S.flat && 'Flat ' + S.T + '-' + S.F + S.flat].filter(Boolean).join(' · ');
     c.innerHTML = parts.map(([go, t]) => `<button type="button" data-go="${go}">${t}</button>`).join('') +
-      (S.mode !== 'site' && S.mode !== 'room' ? `<span>${[S.T && 'Tower ' + S.T, S.F && ord(S.F) + ' floor', S.flat && 'Flat ' + S.T + '-' + S.F + S.flat].filter(Boolean).join(' · ')}</span>` : '');
+      (S.mode !== 'site' && S.mode !== 'room' ? `<span>${where}</span>` : '');
+    if (ui.ctx) ui.ctx.textContent = (sheet() && where) || 'Manjalpur · Vadodara';      // phones show where you are by the logo; wider screens in the crumb
   }
-  function hideCard() { ui.card.hidden = true; ui.leader.style.opacity = 0; S.cardFor = null; }
+  // on touch screens the site view holds still while a card is open, so its button doesn't drift away from the finger
+  const holdSway = on => { if (!finePointer && S.mode === 'site' && !W.reduce) W.controls.autoRotate = !on; };
+  function hideCard() { ui.card.hidden = true; ui.leader.style.opacity = 0; S.cardFor = null; holdSway(false); }
   function floorCard(T, F) {
     const t = towers.byName[T], ty = TYPES[t.type];
     ui.card.innerHTML = `<div class="x3d-card__n"><small>Floor</small><b>${F}</b></div>
       <div class="x3d-card__b"><p class="x3d-card__t">Tower ${T} · 2 BHK</p><p class="x3d-card__m">4 homes · ${ty.name} · ${ty.carpet} sq.ft carpet</p>
       <p class="x3d-card__p"><span>${status(T)}</span> · from ₹30.99 L*</p>
       ${finePointer ? '' : `<button type="button" class="x3d-card__go" data-open-floor="${T}|${F}">Open ${ord(F)} floor →</button>`}</div>`;
-    ui.card.hidden = false; S.cardFor = { kind: 'floor', T, F };
+    ui.card.hidden = false; S.cardFor = { kind: 'floor', T, F }; holdSway(true);
   }
   function flatCard(f) {
     const ty = TYPES[towers.byName[S.T].type];
@@ -87,11 +140,15 @@ async function boot() {
     let ax, ay;
     if (S.cardFor.kind === 'floor') { const a = towers.floorAnchor(S.cardFor.T, S.cardFor.F, W.camera, w, h); if (!a) return; ax = a.x; ay = a.y; }
     else { const v = S.cardFor.f.centre.clone(); v.y += 4; v.project(W.camera); ax = (v.x * 0.5 + 0.5) * w; ay = (-v.y * 0.5 + 0.5) * h; }
-    let cx = ax + 70, cy = ay - ch / 2, lx = cx;
+    let cx = ax + 70, cy = ay - ch / 2, lx = cx, ly;
     if (cx + cw > w - 16) { cx = ax - 70 - cw; lx = cx + cw; }
-    cy = Math.max(90, Math.min(h - ch - 90, cy));
+    if (cx >= 16) { cy = Math.max(90, Math.min(h - ch - 90, cy)); ly = cy + ch / 2; }
+    else {                                   // too narrow for a card beside the point (phones): centre it above, or below, the point
+      cx = Math.max(16, Math.min(w - cw - 16, ax - cw / 2)); lx = Math.max(cx + 12, Math.min(cx + cw - 12, ax));
+      if (ay - ch - 44 > 64) { cy = ay - ch - 44; ly = cy + ch; } else { cy = Math.min(h - ch - 16, ay + 44); ly = cy; }
+    }
     ui.card.style.transform = `translate(${cx}px, ${cy}px)`;
-    ui.line.setAttribute('x1', ax); ui.line.setAttribute('y1', ay); ui.line.setAttribute('x2', lx); ui.line.setAttribute('y2', cy + ch / 2);
+    ui.line.setAttribute('x1', ax); ui.line.setAttribute('y1', ay); ui.line.setAttribute('x2', lx); ui.line.setAttribute('y2', ly);
     ui.leader.style.opacity = 1;
   }
 
@@ -103,14 +160,12 @@ async function boot() {
     [c.minDistance, c.maxDistance, c.minPolarAngle, c.maxPolarAngle] = L;
   }
   const horiz = (from, to) => { const d = new THREE.Vector3().subVectors(to, from); d.y = 0; return d.normalize(); };
-  const Y = new THREE.Vector3(0, 1, 0), sheet = () => matchMedia('(max-width: 900px)').matches;
+  const sheet = () => matchMedia('(max-width: 900px) and (orientation: portrait), (max-width: 560px)').matches;
   // distance at which something rw wide and rh tall (half-extents, ft) fills the free part of the screen
-  function fitDist(rw, rh, sx = 0, sy = 0, fill = 0.86) {
-    const fpx = ((W.h + sy) / 2) / Math.tan(THREE.MathUtils.degToRad(34 / 2)), aw = W.w - sx, ah = W.h - sy;
+  function fitDist(rw, rh, sx = 0, sy = 0, fill = 0.86, freeH = null) {
+    const fpx = ((W.h + Math.abs(sy)) / 2) / Math.tan(THREE.MathUtils.degToRad(34 / 2)), aw = W.w - Math.abs(sx), ah = freeH ?? W.h - Math.abs(sy);
     return Math.max(fpx * rw / (fill * aw / 2), fpx * rh / (fill * ah / 2));
   }
-  // camera spot on an orbit round a target: horizontal direction, distance, elevation (radians)
-  const orbitPos = (target, dir, dist, el) => target.clone().addScaledVector(dir, dist * Math.cos(el)).addScaledVector(Y, dist * Math.sin(el));
   // on the navy model views the key light comes from behind-left of the camera, so walls throw soft shadows forwards
   function modelLight(camPos, target) { const d = horiz(target, camPos).applyAxisAngle(Y, 2.35); d.y = 1.35; W.setKeyDir(d); }
   const allow = d => { const c = W.controls; c.maxDistance = Math.max(c.maxDistance, d * 1.6); c.minDistance = Math.min(c.minDistance, d * 0.35); };
@@ -125,9 +180,10 @@ async function boot() {
     if (S.busy) return; S.busy = true;
     if (S.T) towers.restore(S.T); interior.dispose(); showWorld(true);
     W.setMood('site'); W.focusShadows(new THREE.Vector3(0, 0, 0), 290); towers.highlight(null);
-    S.T = S.F = S.flat = S.room = null; setMode('site'); W.setShift(0, 0, 600);
+    S.T = S.F = S.flat = S.room = null; setMode('site');
     W.camera.fov !== 34 && (W.camera.fov = 34, W.camera.updateProjectionMatrix());
-    const H = heroFor(); await W.fly(H.pos, H.target, 1900, { lift: 30, fov: 34 });
+    const H = heroFor(); S.heroDir = H.dir; W.setMood('site'); W.setShift(0, H.shift, 900);
+    await W.fly(H.pos, H.target, 1900, { lift: 30, fov: 34 });
     S.busy = false; push && setHash();
   }
   async function goTower(T, F, push = true) {
@@ -136,9 +192,9 @@ async function boot() {
     if (S.mode === 'floor' || S.mode === 'flat' || S.mode === 'room') { await closeFloor(); }
     showWorld(true); W.setMood('site');
     const t = towers.byName[T]; S.T = T; S.F = F || null; S.flat = S.room = null;
-    setMode('tower'); W.setShift(0, 0, 600);
+    setMode('tower'); const I = insets(), sy = I.bottom - I.top; W.setShift(0, sy, 600);
     const target = new THREE.Vector3(t.center.x, 44, t.center.z);
-    const dist = fitDist(t.radius * 1.15, 50, 0, 0, 0.66), here = horiz(target, W.camera.position);
+    const dist = fitDist(t.radius * 1.15, 50, 0, sy, portrait() ? 0.8 : 0.66, W.h - I.top - I.bottom), here = horiz(target, W.camera.position);
     let dir = here, bestS = -Infinity;
     for (let k = 0; k < 24; k++) {
       const th = k / 24 * Math.PI * 2, d = new THREE.Vector3(Math.sin(th), 0, Math.cos(th)), cam = target.clone().addScaledVector(d, dist);
@@ -165,7 +221,7 @@ async function boot() {
     S.T = T; S.F = F; S.flat = S.room = null;
     towers.highlight(null); towers.setFloorLights(T, F, false);
     ui.panel.hidden = true; ui.room.hidden = true;
-    setMode('floor'); W.setShift(0, 0, 900);
+    setMode('floor'); const I = insets(), sy = I.bottom - I.top; W.setShift(0, sy, 900);
     if (!open) { interior.build(t, F); interior.key = T + F; interior.prewarm(); }
     interior.setInside(false); interior.hoverFlat(null);
     const fc = new THREE.Vector3(t.center.x, F * FH, t.center.z);
@@ -173,7 +229,7 @@ async function boot() {
     const L = Math.max(t.ext.x, t.ext.z), Sh = Math.min(t.ext.x, t.ext.z), here = horiz(fc, W.camera.position);
     let dir = (portrait ? longAxis : shortAxis).clone(); if (dir.dot(here) < 0) dir.negate();
     if (!open) dir.applyAxisAngle(Y, portrait ? 0.22 : 0.35); else dir = here;
-    const across = portrait ? Sh : L, along = portrait ? L : Sh, dFloor = fitDist(across / 2 * 1.08, along / 2 * 0.72 + 4, 0, 0, portrait ? 0.74 : 0.8);
+    const across = portrait ? Sh : L, along = portrait ? L : Sh, dFloor = fitDist(across / 2 * 1.08, along / 2 * 0.72 + 4, 0, sy, portrait ? 0.84 : 0.8, W.h - I.top - I.bottom);
     const pos = orbitPos(fc, dir, dFloor, 0.8); allow(dFloor);
     modelLight(pos, fc); W.focusShadows(fc, t.radius + 10);
     if (open) {
@@ -214,11 +270,11 @@ async function boot() {
     interior.hoverFlat(null);
     W.tween(800, k => interior.focus(f.i, k));
     renderPanel(f);
-    const sx = sheet() ? 0 : ui.panel.offsetWidth, sy = sheet() ? ui.panel.offsetHeight : 0;
+    const I = insets(), sx = sheet() ? 0 : ui.panel.offsetWidth, sy = I.bottom - I.top, freeH = W.h - I.top - I.bottom;
     W.setShift(sx, sy, wasRoom ? 1500 : 1400);
     const t = towers.byName[S.T], u = units[t.type], c = f.centre.clone(); c.y = S.F * FH + 1.5;
     const out = horiz(t.center, c).applyAxisAngle(Y, 0.6), r = Math.hypot(u.w, u.h) / 2;
-    const dFlat = fitDist(r, r * 0.72, sx, sy, sheet() ? 0.8 : 0.64), pos = orbitPos(c, out, dFlat, 0.86); allow(dFlat);
+    const dFlat = fitDist(r, r * (sheet() ? 0.95 : 0.72), sx, sy, sheet() ? 0.86 : 0.64, freeH), pos = orbitPos(c, out, dFlat, 0.86); allow(dFlat);
     modelLight(pos, c); W.focusShadows(c, 40);
     await W.fly(pos, c, wasRoom ? 1500 : 1400, { fov: 34, lift: wasRoom ? 18 : 6 });
     renderPins(f);
@@ -341,6 +397,24 @@ async function boot() {
     if (S.mode !== 'room') return; e.preventDefault();
     W.camera.fov = THREE.MathUtils.clamp(W.camera.fov + e.deltaY * 0.03, 38, 80); W.camera.updateProjectionMatrix();
   }, { passive: false });
+  let pinch = null;
+  const span = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  canvas.addEventListener('touchstart', e => { pinch = S.mode === 'room' && e.touches.length === 2 ? { d: span(e.touches), fov: W.camera.fov } : null; }, { passive: true });
+  canvas.addEventListener('touchmove', e => {
+    if (!pinch || S.mode !== 'room' || e.touches.length !== 2) return;
+    W.camera.fov = THREE.MathUtils.clamp(pinch.fov * pinch.d / span(e.touches), 38, 95); W.camera.updateProjectionMatrix();
+  }, { passive: true });
+  canvas.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; });
+  // phone turned round (or the window resized) on the site view: refit the towers
+  let refit;
+  new ResizeObserver(() => {
+    clearTimeout(refit);
+    refit = setTimeout(() => {
+      if (S.mode !== 'site' || S.busy) return;
+      const H = heroFor(); S.heroDir = H.dir; W.setMood('site'); W.setShift(0, H.shift, 0);
+      W.camera.position.copy(H.pos); W.controls.target.copy(H.target); W.controls.update();
+    }, 250);
+  }).observe(ui.app);
   // other entry points on the page
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-x3d-flat]'); if (!a) return; e.preventDefault();
@@ -350,13 +424,12 @@ async function boot() {
   });
 
   // ---------- per-frame ----------
-  const heroDir = new THREE.Vector3(0.5, 0, -0.866);
   W.onFrame.add(() => {
-    if (S.mode === 'site' && W.controls.autoRotate) {         // sway +-35 deg round the hero direction
-      const o = new THREE.Vector3().subVectors(W.camera.position, W.controls.target); o.y = 0; o.normalize();
-      const rel = Math.atan2(heroDir.x * o.z - heroDir.z * o.x, heroDir.x * o.x + heroDir.z * o.z);
-      if (rel > 0.6) W.controls.autoRotateSpeed = Math.abs(W.controls.autoRotateSpeed);
-      else if (rel < -0.6) W.controls.autoRotateSpeed = -Math.abs(W.controls.autoRotateSpeed);
+    if (S.mode === 'site' && W.controls.autoRotate) {         // sway round the hero direction (+-35 deg; +-18 deg on an upright phone)
+      const hd = S.heroDir, o = new THREE.Vector3().subVectors(W.camera.position, W.controls.target); o.y = 0; o.normalize();
+      const rel = Math.atan2(hd.x * o.z - hd.z * o.x, hd.x * o.x + hd.z * o.z), lim = SWAY();
+      if (rel > lim) W.controls.autoRotateSpeed = Math.abs(W.controls.autoRotateSpeed);
+      else if (rel < -lim) W.controls.autoRotateSpeed = -Math.abs(W.controls.autoRotateSpeed);
     }
     placeCard();
     if (S.mode === 'flat' && S.pinPts) {

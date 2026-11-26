@@ -28,7 +28,7 @@ function noise(g, w, h, amount, seed, alpha = 0.08) {
 
 export const tex = {
   // sand-coloured facade plaster, as on the Seven Sky renders
-  stucco: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#e4c49d'; g.fillRect(0, 0, w, h); noise(g, w, h, 10, 7, 0.04); }, { repeat: [0.08, 0.08] }),
+  stucco: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#b09272'; g.fillRect(0, 0, w, h); noise(g, w, h, 10, 7, 0.04); }, { repeat: [0.08, 0.08] }),
   stuccoBump: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#808080'; g.fillRect(0, 0, w, h); noise(g, w, h, 60, 11, 0.12); }, { repeat: [0.08, 0.08], srgb: false }),
   paving: () => canvasTexture(512, (g, w, h) => {
     g.fillStyle = '#9c9890'; g.fillRect(0, 0, w, h); noise(g, w, h, 18, 3, 0.06);

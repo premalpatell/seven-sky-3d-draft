@@ -136,11 +136,11 @@ export class World {
   }
 
   // shift the picture so the camera's target sits in the middle of the free area
-  // (x: width of a right-hand panel in px, y: height of a bottom sheet in px)
+  // (x: width of a right-hand panel in px, y: bottom UI height minus top UI height in px; negative moves the picture down)
   applyShift() {
     const c = this.camera, { x, y } = this.shift, w = this.w, h = this.h;
     if (!w) return;
-    if (x > 0.5 || y > 0.5) c.setViewOffset(w + x, h + y, x, y, w, h);
+    if (Math.abs(x) > 0.5 || Math.abs(y) > 0.5) c.setViewOffset(w + Math.abs(x), h + Math.abs(y), Math.max(x, 0), Math.max(y, 0), w, h);
     else { c.clearViewOffset(); c.aspect = w / h; }
     c.updateProjectionMatrix();
   }
@@ -156,7 +156,7 @@ export class World {
     this.mood = mood;
     if (mood === 'site') {
       s.background = null; this.sky.visible = true; s.environment = this.envSky; s.environmentIntensity = 0.42;
-      s.fog.density = 0.00085; this.hemi.intensity = 0.8; this.hemi.color.set(0xe4ecff); this.hemi.groundColor.set(0x9a8a72);
+      s.fog.density = this.siteFog || 0.00085; this.hemi.intensity = 0.8; this.hemi.color.set(0xe4ecff); this.hemi.groundColor.set(0x9a8a72);
       this.key.intensity = 2.7; this.key.color.set(0xffe6c8); this.fill.intensity = 0.6;
       this.setKeyDir(SUN_DIR); this.renderer.toneMappingExposure = 1.0;
       if (this.ao) this.ao.enabled = false;

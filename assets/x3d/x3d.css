@@ -55,6 +55,7 @@ body.x3d-on .x3d__brand { display: flex; }
 .x3d__help:empty { display: none; }
 .x3d__legal { position: absolute; right: clamp(16px, 3vw, 40px); bottom: 34px; font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.55); pointer-events: none; }
 .x3d[data-mode="room"] .x3d__legal, .x3d[data-mode="flat"] .x3d__legal { display: none; }
+.x3d[data-mode="room"] .x3d__crumb { display: none; }
 
 /* flat panel (right) */
 .x3d__panel { position: absolute; right: 0; top: 0; bottom: 0; width: min(380px, 92vw); padding: 96px 30px 28px; overflow-y: auto;
@@ -116,22 +117,68 @@ body.x3d-on .x3d__brand { display: flex; }
 .btn--outline { --bg: transparent; --fg: var(--navy-900); box-shadow: inset 0 0 0 1.5px var(--navy-900); margin-top: .6rem; }
 .btn--outline:hover { --bg: rgba(9, 21, 51, .06); }
 
-@media (max-width: 900px) {
-  .x3d__intro { bottom: 78px; max-width: none; right: 18px; }
-  .x3d__title { font-size: 2.25rem; }
-  .x3d__sub { font-size: 13px; }
+/* phones and upright tablets: one slim bar on top (logo, where you are, back), the flat panel as a bottom sheet */
+@media (max-width: 900px) and (orientation: portrait), (max-width: 560px) {
+  .x3d__intro { left: 18px; right: 18px; bottom: max(70px, calc(env(safe-area-inset-bottom) + 58px)); max-width: none; }
+  .x3d__intro::before { inset: -70px -40px -80px -40px; background: linear-gradient(0deg, rgba(5,13,34,.78), rgba(5,13,34,.45) 60%, transparent); }
+  .x3d__title { font-size: clamp(1.9rem, 8.4vw, 2.3rem); margin: 8px 0; }
+  .x3d__sub { font-size: 13.5px; }
+  .x3d__towers { margin-top: 14px; flex-wrap: nowrap; }
+  .x3d__towers button { flex: 1 1 0; width: auto; min-width: 0; max-width: 52px; }
+  .x3d__hint { bottom: max(26px, calc(env(safe-area-inset-bottom) + 14px)); left: 18px; }
   .x3d__legal { display: none; }
   .x3d__card { min-width: 0; max-width: calc(100vw - 32px); padding: 11px 14px; }
-  .x3d__panel { top: auto; left: 0; width: auto; max-height: 52vh; padding: 20px 20px 24px; border-left: 0; border-top: 1px solid rgba(255,255,255,.16); }
-  .x3d-h { font-size: 30px; margin-bottom: 12px; }
-  .x3d__crumb { top: 72px; }
-  .x3d__help { top: 74px; }
-  .x3d[data-mode="flat"] .x3d__crumb span { display: none; }
+  .x3d-card__n b { font-size: 30px; }
+
+  .x3d__brand { top: max(12px, env(safe-area-inset-top)); left: 14px; right: 150px; gap: 10px; }
+  .x3d__brand img { width: 40px; flex: none; }
+  .x3d__brand span { font-size: 9.5px; letter-spacing: .14em; line-height: 1.45; color: rgba(255,255,255,.82); }
+  .x3d__crumb { top: max(12px, env(safe-area-inset-top)); left: auto; right: 14px; gap: 8px; }
+  .x3d__crumb span { display: none; }
+  .x3d__crumb button { padding: 8px 12px; background: rgba(6,16,38,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .x3d[data-mode="room"] .x3d__crumb { display: flex; }
+  .x3d__help { top: calc(max(12px, env(safe-area-inset-top)) + 58px); font-size: 9.5px; letter-spacing: .14em; }
+
+  .x3d__panel { top: auto; left: 0; width: auto; max-height: 46vh; max-height: 46svh; padding: 10px 20px calc(18px + env(safe-area-inset-bottom)); border-left: 0; border-top: 1px solid rgba(255,255,255,.16);
+    animation-name: x3dSheet; overscroll-behavior: contain; }
+  .x3d__panel::before { content: ""; display: block; width: 36px; height: 4px; margin: 0 auto 12px; border-radius: 2px; background: rgba(255,255,255,.28); }
+  @keyframes x3dSheet { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+  .x3d-h { font-size: 28px; margin: 6px 0 12px; }
+  .x3d-stats b { font-size: 21px; }
+  .x3d-price { font-size: 22px; margin: 12px 0 4px; }
+  .x3d-desc { font-size: 12.5px; }
+  .x3d-rooms button { min-height: 44px; }
+  .x3d-btn { min-height: 48px; }
   .x3d[data-mode="flat"] .x3d__hint { display: none; }
-  .x3d__room { flex-direction: column; align-items: stretch; padding: 18px 16px; }
-  .x3d-room__l { flex-direction: column-reverse; align-items: flex-start; gap: 10px; }
+
+  .x3d__room { flex-direction: column; align-items: stretch; gap: 12px; padding: 40px 0 calc(14px + env(safe-area-inset-bottom)); }
+  .x3d-room__l { padding: 0 16px; }
+  .x3d-room__l .x3d-btn--dark { display: none; }
   .x3d-room__t { font-size: 26px; }
-  .x3d-room__tabs { max-width: none; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .x3d-room__tabs { max-width: none; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding: 0 16px 2px; scroll-padding: 0 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .x3d-room__tabs::-webkit-scrollbar { display: none; }
+  .x3d-room__tabs button { flex: none; }
+}
+/* phones on their side: little height, so keep everything compact and the panel narrow */
+@media (orientation: landscape) and (max-height: 520px) {
+  .x3d__brand { top: 10px; }
+  .x3d__brand img { width: 40px; }
+  .x3d__crumb { top: 62px; }
+  .x3d__crumb button, .x3d__crumb span { padding: 6px 11px; }
+  .x3d__help { top: 12px; left: auto; right: 16px; transform: none; }
+  .x3d__intro { bottom: 18px; max-width: 460px; }
+  .x3d__title { font-size: 1.75rem; margin: 6px 0; }
+  .x3d__sub { display: none; }
+  .x3d__towers { margin-top: 10px; }
+  .x3d__hint, .x3d__legal { display: none; }
+  .x3d__panel { width: min(320px, 46vw); padding: 18px 20px 18px; }
+  .x3d-h { font-size: 26px; margin: 6px 0 10px; }
+  .x3d-stats b { font-size: 19px; }
+  .x3d__room { padding: 14px clamp(16px, 3vw, 40px) 12px; align-items: flex-end; }
+  .x3d-room__l { gap: 14px; }
+  .x3d-room__t { font-size: 22px; }
+  .x3d-room__tabs { max-width: 58%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
+  .x3d-room__tabs::-webkit-scrollbar { display: none; }
   .x3d-room__tabs button { flex: none; }
 }
 /* fingers need 44px targets */
