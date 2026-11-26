@@ -165,7 +165,7 @@ async function boot() {
     towers.highlight(null); towers.setFloorLights(T, F, false);
     ui.panel.hidden = true; ui.room.hidden = true;
     setMode('floor'); W.setShift(0, 0, 900);
-    if (!open) { interior.build(t, F); interior.key = T + F; }
+    if (!open) { interior.build(t, F); interior.key = T + F; interior.prewarm(); }
     interior.setInside(false); interior.hoverFlat(null);
     const fc = new THREE.Vector3(t.center.x, F * FH, t.center.z);
     const portrait = W.w / W.h < 1, longX = t.ext.x >= t.ext.z, longAxis = longX ? t.axisX : t.axisZ, shortAxis = longX ? t.axisZ : t.axisX;

@@ -227,6 +227,14 @@ export class Interior {
 
   setWallHeight(H) { this.H = H; this.applyHeights(); }
 
+  // compile the shaders the room view needs (ceilings, coves, curtains) while you look at the floor, so stepping inside doesn't stutter
+  prewarm() {
+    const W = this.world, hidden = [];
+    for (const f of this.flats || []) for (const g of [f.ceilG, f.curtG]) if (!g.visible) { g.visible = true; hidden.push(g); }
+    const done = () => hidden.forEach(g => { g.visible = false; });
+    return (W.renderer.compileAsync ? W.renderer.compileAsync(this.group, W.camera, W.scene) : Promise.resolve(W.renderer.compile(this.group, W.camera, W.scene))).then(done, done);
+  }
+
   // each flat's walls follow the global height, except flats shown only as context, which drop to low "plan" stubs
   applyHeights() {
     for (const f of this.flats || []) {
