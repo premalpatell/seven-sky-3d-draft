@@ -28,7 +28,7 @@ function noise(g, w, h, amount, seed, alpha = 0.08) {
 
 export const tex = {
   // sand-coloured facade plaster, as on the Seven Sky renders
-  stucco: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#b09272'; g.fillRect(0, 0, w, h); noise(g, w, h, 10, 7, 0.04); }, { repeat: [0.08, 0.08] }),
+  stucco: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#d3b48f'; g.fillRect(0, 0, w, h); noise(g, w, h, 10, 7, 0.04); }, { repeat: [0.08, 0.08] }),
   stuccoBump: () => canvasTexture(256, (g, w, h) => { g.fillStyle = '#808080'; g.fillRect(0, 0, w, h); noise(g, w, h, 60, 11, 0.12); }, { repeat: [0.08, 0.08], srgb: false }),
   paving: () => canvasTexture(512, (g, w, h) => {
     g.fillStyle = '#9c9890'; g.fillRect(0, 0, w, h); noise(g, w, h, 18, 3, 0.06);
@@ -37,7 +37,7 @@ export const tex = {
   }, { repeat: [1 / 16, 1 / 16] }),
   asphalt: () => canvasTexture(512, (g, w, h) => { g.fillStyle = '#3b3d40'; g.fillRect(0, 0, w, h); noise(g, w, h, 26, 5, 0.05); }, { repeat: [1 / 30, 1 / 30] }),
   grass: () => canvasTexture(512, (g, w, h) => {
-    g.fillStyle = '#5d7d3f'; g.fillRect(0, 0, w, h); const r = rng(9);
+    g.fillStyle = '#5c7543'; g.fillRect(0, 0, w, h); const r = rng(9);
     for (let i = 0; i < 9000; i++) { const v = 70 + r() * 70; g.fillStyle = `rgba(${v * 0.6 | 0},${v | 0},${v * 0.35 | 0},.5)`; g.fillRect(r() * w, r() * h, 1.5, 3); }
     // mowing stripes
     for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? 'rgba(255,255,255,.022)' : 'rgba(0,0,0,.022)'; g.fillRect(i * w / 8, 0, w / 8, h); }

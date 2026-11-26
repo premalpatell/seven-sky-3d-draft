@@ -26,13 +26,13 @@ export function detectQuality() {
 
 // the sun rakes across the north facades the hero camera sees (three-quarter light; the east ends fall into soft shade)
 export const SUN_DIR = new THREE.Vector3(-0.22, 0.6, -0.77).normalize();
-const HAZE = new THREE.Color(0x9fc3ec);
+const HAZE = new THREE.Color(0xa8c6e8);
 
 function makeSky() {
   const m = new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
     uniforms: {
-      zenith: { value: new THREE.Color(0x0b4fc7) }, mid: { value: new THREE.Color(0x2a7fe6) }, horizon: { value: HAZE.clone() },
+      zenith: { value: new THREE.Color(0x2c64b4) }, mid: { value: new THREE.Color(0x4a87d2) }, horizon: { value: HAZE.clone() },
       ground: { value: new THREE.Color(0x6f7f8f) }, glow: { value: new THREE.Color(0xffd9b0) }, sun: { value: SUN_DIR.clone() },
     },
     vertexShader: 'varying vec3 vDir; void main() { vDir = position; vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position = p.xyww; }',
@@ -45,7 +45,7 @@ function makeSky() {
       void main() {
         vec3 d = normalize(vDir); float h = d.y; vec3 col;
         if (h < 0.0) col = mix(horizon, ground, smoothstep(0.0, -0.2, h));
-        else { col = mix(horizon, mid, smoothstep(0.0, 0.2, h)); col = mix(col, zenith, smoothstep(0.16, 0.8, h)); }
+        else { col = mix(horizon, mid, smoothstep(0.0, 0.17, h)); col = mix(col, zenith, smoothstep(0.14, 0.75, h)); }
         vec2 hz = normalize(d.xz + 1e-4), sz = normalize(sun.xz + 1e-4);
         float s = max(dot(hz, sz), 0.0);
         col += glow * pow(s, 5.0) * (1.0 - smoothstep(0.0, 0.3, abs(h))) * 0.45;
@@ -53,9 +53,11 @@ function makeSky() {
           vec2 uv = d.xz / (h + 0.06);
           float c = fbm(uv * 0.55 + vec2(3.0, 1.0));
           float w = fbm(vec2(uv.x * 0.35, uv.y * 1.6) + 7.0);
-          float cl = smoothstep(0.52, 0.8, c * 0.55 + w * 0.5) * smoothstep(0.015, 0.16, h) * (1.0 - 0.55 * smoothstep(0.55, 0.95, h));
-          vec3 cc = mix(horizon * 1.05, vec3(1.0, 0.98, 0.96), 0.55) * mix(0.82, 1.08, c);
-          col = mix(col, cc, cl * 0.75);
+          float d0 = c * 0.55 + w * 0.5, cl = smoothstep(0.5, 0.78, d0) * smoothstep(0.015, 0.16, h) * (1.0 - 0.55 * smoothstep(0.55, 0.95, h));
+          float lit = smoothstep(-0.06, 0.1, d0 - fbm(uv * 0.55 + vec2(3.0, 1.0) - sun.xz * 0.35) * 0.55 - w * 0.5);   // denser away from the sun = shaded underside
+          vec3 cc = mix(vec3(0.7, 0.74, 0.8), vec3(1.0, 0.985, 0.96), 0.35 + 0.65 * lit);
+          cc = mix(cc, horizon, 0.35 * (1.0 - smoothstep(0.02, 0.25, h)));                                          // far clouds fade into the haze
+          col = mix(col, cc, cl * 0.85);
         }
         gl_FragColor = vec4(col, 1.0);
       }`,
