@@ -24,11 +24,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" as="image" href="assets/img/dusk-fg-1908.webp" imagesrcset="assets/img/dusk-fg-800.webp 800w, assets/img/dusk-fg-1200.webp 1200w, assets/img/dusk-fg-1908.webp 1908w" imagesizes="100vw" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css?v=2" />
-  <link rel="stylesheet" href="assets/css/explorer.css?v=1" />
+    <link rel="stylesheet" href="assets/css/style.css?v=2" />
+  <link rel="stylesheet" href="assets/x3d/x3d.css?v=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.min.js"}}</script>
+  <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.min.js","three/addons/":"./assets/vendor/addons/"}}</script>
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 
   <script type="application/ld+json">
@@ -159,7 +158,7 @@
         <img src="assets/img/logo-sevensky-notagline.svg" alt="Seven Sky" width="65" height="52" />
       </a>
       <div class="nav__links">
-        <a href="#explore" data-xp-open>Explore in 3D</a>
+        <a href="#x3d">Explore in 3D</a>
         <a href="#about">Project</a>
         <a href="#plans">Floor Plans</a>
         <a href="#gallery">Gallery</a>
@@ -178,7 +177,7 @@
 
 <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
   <ul>
-    <li style="--i:0"><a href="#explore" data-xp-open>Explore in 3D <small>NEW</small></a></li>
+    <li style="--i:0"><a href="#x3d">Explore in 3D <small>NEW</small></a></li>
     <li style="--i:1"><a href="#about">The Project <small>01</small></a></li>
     <li style="--i:2"><a href="#plans">Floor Plans <small>02</small></a></li>
     <li style="--i:3"><a href="#gallery">Gallery <small>03</small></a></li>
@@ -194,38 +193,27 @@
 
 <main id="main">
 
-<!-- ═════════ Hero: interactive Tower A ═════════ -->
-<section class="xh" id="explore" aria-label="Seven Sky: explore Tower A floor by floor">
-  <div class="xh__sticky">
-    <div class="xh__stage" id="xh-stage">
-      <img src="assets/img/dusk-fg-1908.webp" srcset="assets/img/dusk-fg-1200.webp 1200w, assets/img/dusk-fg-1908.webp 1908w" sizes="(max-width: 900px) 200vw, 120vw" width="1908" height="1247" alt="Seven Sky Tower A at dusk, with the shop podium at the corner (artist's impression)" fetchpriority="high" />
-      <div class="xh__fade" aria-hidden="true"></div>
-      <svg class="xh__floors" id="xh-floors" viewBox="0 0 1908 1247" preserveAspectRatio="none" aria-hidden="true"></svg>
+<!-- ═════════ Seven Sky in 3D ═════════ -->
+<section class="x3d" id="x3d" data-mode="site" aria-label="Seven Sky in 3D">
+  <div class="x3d__app" id="x3d-app">
+    <canvas id="x3d-canvas" aria-label="Interactive 3D model of Seven Sky. Hover or tap a floor of any tower to explore it."></canvas>
+    <svg class="x3d__leader" id="x3d-leader" aria-hidden="true"><line x1="0" y1="0" x2="0" y2="0"/></svg>
+    <div class="x3d__pins" id="x3d-pins"></div>
+    <div class="x3d__card" id="x3d-card" hidden></div>
+    <div class="x3d__brand"><img src="assets/img/logo-sevensky-notagline.svg" alt="Seven Sky" width="56" height="45"><span>Manjalpur · Vadodara</span></div>
+    <nav class="x3d__crumb" id="x3d-crumb" aria-label="You are here"></nav>
+    <div class="x3d__intro" id="x3d-intro">
+      <p class="x3d-k">Seven Sky · 2 BHK residences · Manjalpur, Vadodara</p>
+      <h1 class="x3d__title">Possession from <em>December 2026</em></h1>
+      <p class="x3d__sub">All seven towers in 3D. Open any floor, pick your flat and step inside every room. 2 BHK homes from ₹30.99 Lakh*.</p>
+      <div class="x3d__towers" aria-label="Go to a tower"><button type="button" data-tower="A" aria-label="Tower A">A</button><button type="button" data-tower="B" aria-label="Tower B">B</button><button type="button" data-tower="C" aria-label="Tower C">C</button><button type="button" data-tower="D" aria-label="Tower D">D</button><button type="button" data-tower="E" aria-label="Tower E">E</button><button type="button" data-tower="F" aria-label="Tower F">F</button><button type="button" data-tower="G" aria-label="Tower G">G</button></div>
     </div>
-    <div class="xh__shade" aria-hidden="true"></div>
-
-    <div class="xh__copy" id="xh-copy">
-      <p class="xh__eyebrow"><svg class="icon"><use href="#i-key"/></svg>Nearing possession · Manjalpur, Vadodara</p>
-      <h1 class="xh__title">Possession Starts <em>December 2026</em></h1>
-      <p class="xh__lead">Premium 2 BHK homes across seven towers. Pick a floor, choose your flat and walk through it in 3D.</p>
-      <p class="xh__price"><span>2 BHK from</span><strong>₹30.99 Lakh<sup>*</sup></strong></p>
-      <div class="xh__ctas">
-        <button class="btn" type="button" data-xp-open><svg class="icon"><use href="#i-cube"/></svg>Explore homes in 3D</button>
-        <a class="btn btn--ghost" href="https://wa.me/917433886565" data-wa="general" target="_blank" rel="noopener"><svg class="icon icon--fill"><use href="#i-wa"/></svg>WhatsApp Us</a>
-      </div>
-    </div>
-
-    <ol class="xh__index" id="xh-index" aria-label="Tower A floors"></ol>
-
-    <div class="xh__tip" id="xh-tip" hidden>
-      <p class="xh__tip-k">Tower A</p>
-      <p class="xh__tip-t" id="xh-tip-t">Floor 5</p>
-      <p class="xh__tip-m" id="xh-tip-m">4 homes · 2 BHK · 533 sq.ft</p>
-      <button class="xh__tip-go" type="button" id="xh-tip-go">View floor <svg class="icon"><use href="#i-arrow"/></svg></button>
-    </div>
-
-    <p class="xh__hint" id="xh-hint"><span class="xh__hint-dot" aria-hidden="true"></span><span class="xh__hint-fine">Hover a floor of Tower A</span><span class="xh__hint-coarse">Tap a floor of Tower A</span></p>
-    <p class="xh__caption">Tower A at dusk · Artist's impression</p>
+    <p class="x3d__hint"><i aria-hidden="true"></i><span id="x3d-hint">Hover a floor to explore</span></p>
+    <p class="x3d__help" id="x3d-help"></p>
+    <p class="x3d__legal">3D model built from the project brochure plans · for illustration only</p>
+    <aside class="x3d__panel" id="x3d-panel" hidden aria-live="polite"></aside>
+    <div class="x3d__room" id="x3d-room" hidden></div>
+    <div class="x3d__loader" id="x3d-loader"><p id="x3d-loader-t">Building Seven Sky in 3D…</p><i></i></div>
   </div>
 </section>
 
@@ -317,7 +305,7 @@
           <div><dt>Balcony</dt><dd>4'3" × 4'0"</dd></div>
         </dl>
         <a class="btn btn--navy btn--block" href="https://wa.me/917433886565" data-wa="type1" target="_blank" rel="noopener">Get the Type I price</a>
-        <button class="btn btn--outline btn--block" type="button" data-xp-unit="A-501"><svg class="icon"><use href="#i-cube"/></svg>See Type I in 3D</button>
+        <button class="btn btn--outline btn--block" type="button" data-x3d-flat="A-501"><svg class="icon"><use href="#i-cube"/></svg>See Type I in 3D</button>
       </div>
     </div>
 
@@ -340,7 +328,7 @@
           <div><dt>Balcony</dt><dd>3'9" × 5'3"</dd></div>
         </dl>
         <a class="btn btn--navy btn--block" href="https://wa.me/917433886565" data-wa="type2" target="_blank" rel="noopener">Get the Type II price</a>
-        <button class="btn btn--outline btn--block" type="button" data-xp-unit="D-501"><svg class="icon"><use href="#i-cube"/></svg>See Type II in 3D</button>
+        <button class="btn btn--outline btn--block" type="button" data-x3d-flat="D-501"><svg class="icon"><use href="#i-cube"/></svg>See Type II in 3D</button>
       </div>
     </div>
 
@@ -363,7 +351,7 @@
           <div><dt>Balcony</dt><dd>4'6" × 4'3"</dd></div>
         </dl>
         <a class="btn btn--navy btn--block" href="https://wa.me/917433886565" data-wa="type3" target="_blank" rel="noopener">Get the Type III price</a>
-        <button class="btn btn--outline btn--block" type="button" data-xp-unit="F-501"><svg class="icon"><use href="#i-cube"/></svg>See Type III in 3D</button>
+        <button class="btn btn--outline btn--block" type="button" data-x3d-flat="F-501"><svg class="icon"><use href="#i-cube"/></svg>See Type III in 3D</button>
       </div>
     </div>
     <p class="plan__note">Room sizes are from the project brochure. Carpet area is as per RERA; please confirm unit details at booking.</p>
@@ -682,54 +670,9 @@
 </div>
 
 
-<!-- ═════════ 3D home explorer (overlay) ═════════ -->
-<div class="xp" id="xp" role="dialog" aria-modal="true" aria-label="Explore Seven Sky homes" hidden>
-  <div class="xp__bar">
-    <img class="xp__logo" src="assets/img/logo-sevensky-notagline.svg" alt="Seven Sky" width="46" height="37" />
-    <nav class="xp__crumbs" id="xp-crumbs" aria-label="You are here"></nav>
-    <button class="xp__close" type="button" id="xp-close" aria-label="Close explorer"><svg class="icon"><use href="#i-close"/></svg></button>
-  </div>
 
-  <!-- 1 · Site plan: choose tower, floor, flat -->
-  <section class="xp__view xp__site" data-view="site" aria-label="Choose a tower, floor and flat">
-    <div class="xp__map" id="xp-map">
-      <div class="xp__mapinner" id="xp-mapinner">
-        <img src="assets/explorer/siteplan.webp" loading="lazy" width="4600" height="1604" alt="Seven Sky typical floor plan showing Towers A to G" draggable="false" />
-        <div class="xp__marks" id="xp-marks"></div>
-      </div>
-      <p class="xp__mapnote">Typical floor plan from the project brochure · North is up</p>
-    </div>
-    <aside class="xp__panel" id="xp-site-panel" aria-live="polite"></aside>
-  </section>
-
-  <!-- 2 · The flat in 3D -->
-  <section class="xp__view xp__unit" data-view="unit" aria-label="Your flat in 3D">
-    <div class="xp__stage3d" id="xp-stage3d">
-      <canvas id="xp-canvas" aria-label="3D model of the flat. Drag to turn, scroll to zoom."></canvas>
-      <div class="xp__pins" id="xp-pins"></div>
-      <p class="xp__loading" id="xp-loading">Building your home in 3D…</p>
-      <p class="xp__help"><span class="xh__hint-fine">Drag to turn · Scroll to zoom · Click a room to step inside</span><span class="xh__hint-coarse">Drag to turn · Pinch to zoom · Tap a room</span></p>
-    </div>
-    <aside class="xp__panel xp__panel--unit" id="xp-unit-panel" aria-live="polite"></aside>
-  </section>
-
-  <!-- 3 · Inside a room -->
-  <section class="xp__view xp__room" data-view="room" aria-label="Inside the room">
-    <div class="xp__photo"><img id="xp-room-img" alt="" /></div>
-    <div class="xp__roomcap">
-      <p class="xp__kicker" id="xp-room-k"></p>
-      <h2 class="xp__roomtitle" id="xp-room-t"></h2>
-      <p class="xp__roomsize" id="xp-room-s"></p>
-      <div class="xp__roombtns">
-        <button class="btn btn--light" type="button" id="xp-room-back"><svg class="icon xp__flip"><use href="#i-arrow"/></svg>Back to floor plan</button>
-        <button class="btn btn--ghost" type="button" id="xp-room-next">Next photo<svg class="icon"><use href="#i-arrow"/></svg></button>
-      </div>
-    </div>
-    <p class="xp__fine">Indicative interior, shown for reference. Furniture, appliances and décor are not part of the offering.</p>
-  </section>
-</div>
 
 <script src="assets/js/main.js?v=3" defer></script>
-<script type="module" src="assets/js/explorer.js?v=1"></script>
+<script type="module" src="assets/x3d/js/app.js?v=1"></script>
 </body>
 </html>

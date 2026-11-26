@@ -1,0 +1,137 @@
+/* Seven Sky in 3D — interface (reel-style: sharp navy cards, thin white rules, serif numerals) */
+.x3d { position: relative; height: 100vh; height: 100svh; background: #050d22; color: #fff; }
+.x3d__app { position: absolute; inset: 0; overflow: hidden; }
+body.x3d-on { overflow: hidden; }
+body.x3d-on .x3d__app { position: fixed; z-index: 2000; }
+body.x3d-on .site-header, body.x3d-on #action-bar, body.x3d-on .wa-float, body.x3d-on .float-wa { display: none !important; }
+#x3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.x3d .x3d-k { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.72); font-weight: 500; }
+
+/* leader line + hover card */
+.x3d__leader { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.x3d__leader line { stroke: rgba(255,255,255,.85); stroke-width: 1; }
+.x3d__card { position: absolute; left: 0; top: 0; display: flex; gap: 16px; align-items: stretch; min-width: 260px; padding: 13px 18px 14px 16px;
+  background: rgba(6, 16, 38, .93); border: 1px solid rgba(255,255,255,.28); box-shadow: 0 18px 50px rgba(0,0,0,.35); pointer-events: none; will-change: transform; }
+.x3d__card[hidden] { display: none; }
+.x3d-card__n { display: flex; flex-direction: column; justify-content: center; padding-right: 14px; border-right: 1px solid rgba(255,255,255,.18); }
+.x3d-card__n small { font-size: 9px; letter-spacing: .24em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.x3d-card__n b { font-family: var(--f-display); font-weight: 500; font-size: 36px; line-height: 1; margin-top: 2px; }
+.x3d-card__t { font-family: var(--f-display); font-size: 17px; line-height: 1.2; }
+.x3d-card__m { font-size: 11.5px; color: rgba(255,255,255,.72); margin-top: 3px; }
+.x3d-card__p { margin-top: 8px; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.8); }
+.x3d-card__p span { display: inline-block; padding: 3px 8px; border: 1px solid rgba(126,214,170,.75); color: #a9ecc7; margin-right: 4px; }
+.x3d-card__go { pointer-events: auto; margin-top: 10px; padding: 7px 12px; background: #fff; color: #06122a; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; }
+.x3d[data-mode="site"] .x3d__card, .x3d[data-mode="tower"] .x3d__card, .x3d[data-mode="floor"] .x3d__card { pointer-events: auto; }
+
+/* brand + breadcrumb (app modes; the site header covers the hero) */
+.x3d__brand { position: absolute; left: clamp(16px, 3vw, 40px); top: 18px; display: none; align-items: center; gap: 14px; }
+.x3d__brand img { width: 50px; height: auto; }
+.x3d__brand span { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+body.x3d-on .x3d__brand { display: flex; }
+.x3d__crumb { position: absolute; left: clamp(16px, 3vw, 40px); top: 84px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.x3d__crumb button { padding: 8px 14px; border: 1px solid rgba(255,255,255,.35); background: rgba(6,16,38,.55); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #fff; transition: background .2s; }
+.x3d__crumb button:hover { background: rgba(255,255,255,.12); }
+.x3d__crumb span { padding: 8px 12px; background: rgba(6,16,38,.5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.82); }
+
+/* hero intro (site mode only) */
+.x3d__intro { position: absolute; left: clamp(18px, 4vw, 56px); bottom: 92px; max-width: 470px; pointer-events: none; transition: opacity .5s; isolation: isolate; }
+.x3d__intro > * { pointer-events: auto; }
+.x3d__intro::before { content: ""; position: absolute; inset: -90px -120px -70px -90px; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgba(5,13,34,.62), rgba(5,13,34,.3) 55%, transparent); }
+.x3d__title { font-family: var(--f-display); font-weight: 500; font-size: clamp(2rem, 3.4vw, 3.2rem); line-height: 1.05; margin: 10px 0 10px; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+.x3d__title em { font-style: italic; color: var(--gold-300); }
+.x3d__sub { font-size: 14px; line-height: 1.55; color: rgba(255,255,255,.82); max-width: 400px; text-shadow: 0 1px 12px rgba(0,0,0,.4); }
+.x3d__towers { display: flex; gap: 6px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+.x3d__towers::before { content: "Towers"; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-right: 8px; }
+.x3d__towers button { width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.4); background: rgba(6,16,38,.45); font-family: var(--f-display); font-size: 16px; color: #fff; transition: background .2s, color .2s; }
+.x3d__towers button:hover { background: #fff; color: #06122a; }
+.x3d:not([data-mode="site"]) .x3d__intro { opacity: 0; pointer-events: none; }
+.x3d:not([data-mode="site"]) .x3d__intro > * { pointer-events: none; }
+
+.x3d__hint { position: absolute; left: clamp(18px, 4vw, 56px); bottom: 34px; display: flex; align-items: center; gap: 10px; font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.85); pointer-events: none; }
+.x3d__hint i { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 0 rgba(255,255,255,.6); animation: x3dPulse 1.8s infinite; }
+@keyframes x3dPulse { 70% { box-shadow: 0 0 0 9px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
+.x3d[data-mode="room"] .x3d__hint { display: none; }
+.x3d__help { position: absolute; left: 50%; top: 24px; transform: translateX(-50%); padding: 8px 14px; background: rgba(6,16,38,.62); border: 1px solid rgba(255,255,255,.18); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #fff; white-space: nowrap; pointer-events: none; }
+.x3d__help:empty { display: none; }
+.x3d__legal { position: absolute; right: clamp(16px, 3vw, 40px); bottom: 34px; font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.55); pointer-events: none; }
+.x3d[data-mode="room"] .x3d__legal, .x3d[data-mode="flat"] .x3d__legal { display: none; }
+
+/* flat panel (right) */
+.x3d__panel { position: absolute; right: 0; top: 0; bottom: 0; width: min(380px, 92vw); padding: 96px 30px 28px; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(6,16,38,.96), rgba(6,16,38,.9)); border-left: 1px solid rgba(255,255,255,.14); animation: x3dIn .6s var(--ease-out) both; }
+.x3d__panel[hidden] { display: none; }
+@keyframes x3dIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+.x3d-h { font-family: var(--f-display); font-weight: 500; font-size: 38px; line-height: 1.05; margin: 10px 0 18px; }
+.x3d-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,255,255,.16); border-bottom: 1px solid rgba(255,255,255,.16); }
+.x3d-stats div { padding: 12px 0 12px 12px; border-left: 1px solid rgba(255,255,255,.16); }
+.x3d-stats div:first-child { border-left: 0; padding-left: 0; }
+.x3d-stats b { display: block; font-family: var(--f-display); font-size: 24px; font-weight: 500; }
+.x3d-stats small { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.62); }
+.x3d-price { font-family: var(--f-display); font-size: 26px; margin: 16px 0 6px; }
+.x3d-price small { font-family: var(--f-body); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-right: 6px; }
+.x3d-price sup { font-size: .5em; color: var(--gold-300); }
+.x3d-desc { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,.78); }
+.x3d-rooms { margin: 16px 0 18px; }
+.x3d-rooms button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 13.5px; color: #fff; text-align: left; transition: color .2s, padding .2s; }
+.x3d-rooms button i { width: 8px; height: 8px; border-radius: 50%; background: var(--gold-300); box-shadow: 0 0 0 3px rgba(226,194,126,.22); flex: none; }
+.x3d-rooms button span { margin-left: auto; font-size: 11.5px; color: rgba(255,255,255,.55); }
+.x3d-rooms button:hover { color: var(--gold-300); padding-left: 4px; }
+.x3d-btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 13px 16px; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; margin-top: 8px; transition: background .2s, color .2s; }
+.x3d-btn--wa { background: #fff; color: #06122a; }
+.x3d-btn--wa:hover { background: var(--gold-300); }
+.x3d-btn--line { border: 1px solid rgba(255,255,255,.4); color: #fff; }
+.x3d-btn--line:hover { background: rgba(255,255,255,.1); }
+.x3d-btn--dark { width: auto; white-space: nowrap; background: rgba(6,16,38,.85); border: 1px solid rgba(255,255,255,.35); color: #fff; margin: 0; }
+.x3d-note { margin-top: 16px; font-size: 11px; line-height: 1.5; color: rgba(255,255,255,.5); }
+
+/* room dots on the model */
+.x3d__pins { position: absolute; inset: 0; pointer-events: none; }
+.x3d-pin { position: absolute; left: 0; top: 0; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--gold-300); border: 2px solid #fff; pointer-events: auto; box-shadow: 0 0 0 0 rgba(226,194,126,.7); animation: x3dPulse2 2.2s infinite; }
+@keyframes x3dPulse2 { 70% { box-shadow: 0 0 0 10px rgba(226,194,126,0); } 100% { box-shadow: 0 0 0 0 rgba(226,194,126,0); } }
+.x3d-pin span { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; padding: 5px 9px; background: rgba(6,16,38,.92); border: 1px solid rgba(255,255,255,.25); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.x3d-pin:hover span, .x3d-pin:focus-visible span { opacity: 1; }
+
+/* inside a room: bottom bar */
+.x3d__room { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 26px clamp(16px, 3vw, 40px) 26px;
+  background: linear-gradient(0deg, rgba(5,13,34,.82), rgba(5,13,34,0)); animation: x3dUp .6s var(--ease-out) both; }
+.x3d__room[hidden] { display: none; }
+@keyframes x3dUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.x3d-room__l { display: flex; align-items: flex-end; gap: 22px; }
+.x3d-room__l .x3d-k { white-space: nowrap; }
+.x3d-room__t { font-family: var(--f-display); font-weight: 500; font-size: 34px; line-height: 1.05; margin-top: 6px; }
+.x3d-room__s { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 3px; }
+.x3d-room__tabs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 60%; }
+.x3d-room__tabs button { padding: 8px 12px; border: 1px solid rgba(255,255,255,.35); background: rgba(6,16,38,.6); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #fff; }
+.x3d-room__tabs button.is-on, .x3d-room__tabs button:hover { background: #fff; color: #06122a; }
+
+/* loader */
+.x3d__loader { position: absolute; inset: 0; display: grid; place-content: center; gap: 16px; text-align: center; background: #050d22; transition: opacity .8s, visibility 0s linear .8s; z-index: 5; }
+.x3d__loader p { font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: rgba(255,255,255,.75); }
+.x3d__loader i { width: 180px; height: 1px; background: rgba(255,255,255,.2); position: relative; overflow: hidden; margin: 0 auto; }
+.x3d__loader i::after { content: ""; position: absolute; inset: 0; width: 40%; background: #fff; animation: x3dLoad 1.2s infinite ease-in-out; }
+@keyframes x3dLoad { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+.x3d__loader.is-done { opacity: 0; visibility: hidden; }
+
+/* buttons below the floor plans */
+.btn--outline { --bg: transparent; --fg: var(--navy-900); box-shadow: inset 0 0 0 1.5px var(--navy-900); margin-top: .6rem; }
+.btn--outline:hover { --bg: rgba(9, 21, 51, .06); }
+
+@media (max-width: 900px) {
+  .x3d__intro { bottom: 78px; max-width: none; right: 18px; }
+  .x3d__title { font-size: 2rem; }
+  .x3d__sub { font-size: 13px; }
+  .x3d__legal { display: none; }
+  .x3d__card { min-width: 0; max-width: calc(100vw - 32px); padding: 11px 14px; }
+  .x3d__panel { top: auto; left: 0; width: auto; max-height: 52vh; padding: 20px 20px 24px; border-left: 0; border-top: 1px solid rgba(255,255,255,.16); }
+  .x3d-h { font-size: 30px; margin-bottom: 12px; }
+  .x3d__crumb { top: 72px; }
+  .x3d__help { top: 74px; }
+  .x3d[data-mode="flat"] .x3d__crumb span { display: none; }
+  .x3d[data-mode="flat"] .x3d__hint { display: none; }
+  .x3d__room { flex-direction: column; align-items: stretch; padding: 18px 16px; }
+  .x3d-room__l { flex-direction: column-reverse; align-items: flex-start; gap: 10px; }
+  .x3d-room__t { font-size: 26px; }
+  .x3d-room__tabs { max-width: none; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .x3d-room__tabs button { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) { .x3d__hint i, .x3d-pin { animation: none; } }

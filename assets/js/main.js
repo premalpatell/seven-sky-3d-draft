@@ -48,7 +48,7 @@
   window.addEventListener('resize', setBarHeight);
 
   const actionBar = $('#action-bar');
-  const hero = $('.xh');
+  const hero = $('.x3d');
   function onScroll() {
     const y = window.scrollY;
     header.classList.toggle('is-solid', y > 40);
